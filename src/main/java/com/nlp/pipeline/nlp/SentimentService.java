@@ -1,57 +1,90 @@
 package com.nlp.pipeline.nlp;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import edu.stanford.nlp.ling.CoreAnnotations;
-import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
-import edu.stanford.nlp.pipeline.Annotation;
-import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
-import edu.stanford.nlp.trees.Tree;
-import edu.stanford.nlp.util.CoreMap;
+import opennlp.tools.doccat.DoccatFactory;
+import opennlp.tools.doccat.DoccatModel;
+import opennlp.tools.doccat.DocumentCategorizerME;
+import opennlp.tools.doccat.DocumentSample;
+import opennlp.tools.util.ObjectStream;
+import opennlp.tools.util.ObjectStreamUtils;
+import opennlp.tools.util.TrainingParameters;
 
 public class SentimentService {
 
-    private final StanfordCoreNLP pipeline;
+    private DoccatModel model;
 
     public SentimentService() {
-        Properties props = new Properties();
+        trainModel();
+    }
 
-        // pipeline necesario para sentimiento
-        props.setProperty("annotators", "tokenize,ssplit,parse,sentiment");
-        props.setProperty("tokenize.language", "en");
+    private void trainModel() {
+        System.out.println("Entrenando modelo de sentimientos...");
+        String csvPath = "src/main/resources/Datasets/SentimentAnalysisDataset/train.csv";
+        List<DocumentSample> samples = new ArrayList<>();
 
-        this.pipeline = new StanfordCoreNLP(props);
+        try (BufferedReader br = new BufferedReader(new FileReader(csvPath))) {
+            String line;
+            boolean firstLine = true;
+            while ((line = br.readLine()) != null) {
+                if (firstLine) {
+                    firstLine = false;
+                    continue; // Skip header
+                }
+                
+                int lastCommaIndex = line.lastIndexOf(',');
+                if (lastCommaIndex == -1) continue;
+
+                String text = line.substring(0, lastCommaIndex).trim();
+                String category = line.substring(lastCommaIndex + 1).trim();
+
+                // Clean quotes if present
+                if (text.startsWith("\"") && text.endsWith("\"") && text.length() > 1) {
+                    text = text.substring(1, text.length() - 1);
+                }
+
+                String[] tokens = text.split("\\s+");
+                samples.add(new DocumentSample(category, tokens));
+            }
+
+            ObjectStream<DocumentSample> sampleStream = ObjectStreamUtils.createObjectStream(samples);
+
+            TrainingParameters params = new TrainingParameters();
+            params.put(TrainingParameters.ITERATIONS_PARAM, "20"); // Using 20 for faster startup
+            params.put(TrainingParameters.CUTOFF_PARAM, "2");
+
+            model = DocumentCategorizerME.train("en", sampleStream, params, new DoccatFactory());
+
+            System.out.println("Modelo de sentimientos entrenado correctamente.");
+
+        } catch (IOException e) {
+            throw new RuntimeException("Error entrenando modelo de sentimientos", e);
+        }
     }
 
     public double analyzeSentiment(String text) {
-
-        Annotation document = new Annotation(text);
-        pipeline.annotate(document);
-
-        List<CoreMap> sentences =
-                document.get(CoreAnnotations.SentencesAnnotation.class);
-
-        double total = 0;
-        int count = 0;
-
-        int maxSentences = 1;
-
-        for (int i = 0; i < sentences.size() && i < maxSentences; i++) {
-
-            CoreMap sentence = sentences.get(i);
-
-            Tree tree = sentence.get(
-                    SentimentCoreAnnotations.SentimentAnnotatedTree.class
-            );
-
-            int score = RNNCoreAnnotations.getPredictedClass(tree);
-
-            total += score;
-            count++;
+        if (model == null) {
+            return 0.0;
         }
 
-        return count == 0 ? 0 : total / count;
+        DocumentCategorizerME categorizer = new DocumentCategorizerME(model);
+        String[] tokens = text.split("\\s+");
+        double[] outcomes = categorizer.categorize(tokens);
+        String category = categorizer.getBestCategory(outcomes);
+
+        switch (category.toLowerCase()) {
+            case "positive":
+                return 3.0;
+            case "neutral":
+                return 2.0;
+            case "negative":
+                return 1.0;
+            default:
+                return 2.0;
+        }
     }
 }
