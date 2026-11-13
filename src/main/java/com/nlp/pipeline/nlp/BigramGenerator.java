@@ -10,7 +10,13 @@ public class BigramGenerator {
         List<String> bigrams = new ArrayList<>();
 
         for (int i = 0; i < tokens.size() - 1; i++) {
-            String bigram = tokens.get(i) + "_" + tokens.get(i + 1);
+            String w1 = tokens.get(i);
+            String w2 = tokens.get(i + 1);
+
+            // Omitir bigramas repetidos como capitulo_capitulo o anexo_anexo
+            if (w1.equalsIgnoreCase(w2)) continue;
+
+            String bigram = w1 + "_" + w2;
             bigrams.add(bigram);
         }
 

@@ -14,6 +14,10 @@ public class DocumentResult {
     public List<String> posTags;
     public List<String> namedEntities;
 
+    public EmotionProfile emotionProfile;
+    public double sarcasmScore = -1.0;
+    public double metaphorRatio = -1.0;
+
     public DocumentResult(String category, String fileName, String content) {
         this.category = category;
         this.fileName = fileName;

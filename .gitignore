@@ -1,4 +1,5 @@
-/src/main/resources/Datasets
+/src/main/resources/datasets
+/src/main/resources/unused_datasets
 /src/main/resources/documents
 /src/main/resources/training.txt
 /target

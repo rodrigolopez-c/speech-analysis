@@ -18,7 +18,7 @@ public class ClassificationSummary {
         for (DocumentResult doc : documents) {
 
             String text = String.join(" ", doc.tokens);
-            String predicted = classifier.predict(text);
+            String predicted = classifier.predict(text).replaceAll("_", " ");
             String actual = doc.category;
 
             // conteo de predicciones

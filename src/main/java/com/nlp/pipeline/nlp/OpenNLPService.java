@@ -2,7 +2,6 @@ package com.nlp.pipeline.nlp;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -27,13 +26,28 @@ public class OpenNLPService {
 
         try {
 
-            File trainingFile = new File("src\\main\\resources\\training.txt");
+            File trainingFile = new File("src/main/resources/training.txt");
 
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(trainingFile))) {
+            int validSamples = 0;
+            try (BufferedWriter writer = java.nio.file.Files.newBufferedWriter(trainingFile.toPath(), StandardCharsets.UTF_8)) {
                 for (int i = 0; i < texts.size(); i++) {
-                    writer.write(labels.get(i) + "\t" + texts.get(i));
+                    String text = texts.get(i) != null ? texts.get(i).trim() : "";
+                    if (text.isEmpty()) {
+                        continue;
+                    }
+                    String cleanLabel = labels.get(i) != null ? labels.get(i).trim().replaceAll("\\s+", "_") : "Unknown";
+                    if (cleanLabel.isEmpty()) {
+                        cleanLabel = "Unknown";
+                    }
+                    writer.write(cleanLabel + "\t" + text);
                     writer.newLine();
+                    validSamples++;
                 }
+            }
+
+            if (validSamples == 0) {
+                System.err.println("No hay ejemplos válidos para entrenar el modelo OpenNLP.");
+                return;
             }
 
             InputStreamFactory dataIn = new MarkableFileInputStreamFactory(trainingFile);
@@ -46,7 +60,7 @@ public class OpenNLPService {
 
             model = DocumentCategorizerME.train("en", sampleStream, params, new DoccatFactory());
 
-            System.out.println("Modelo entrenado correctamente");
+            System.out.println("Modelo entrenado correctamente con " + validSamples + " muestras.");
 
         } catch (IOException e) {
             throw new RuntimeException("Error entrenando modelo", e);
@@ -55,10 +69,13 @@ public class OpenNLPService {
 
     // Predicción
     public String predict(String text) {
+        if (model == null) {
+            return "Desconocido";
+        }
         DocumentCategorizerME categorizer = new DocumentCategorizerME(model);
 
-        String[] tokens = text.split("\\s+");
+        String[] tokens = (text != null && !text.trim().isEmpty()) ? text.trim().split("\\s+") : new String[]{"empty"};
         double[] outcomes = categorizer.categorize(tokens);
         return categorizer.getBestCategory(outcomes);
     }
-}
+}

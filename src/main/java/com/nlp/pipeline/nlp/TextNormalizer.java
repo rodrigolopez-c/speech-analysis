@@ -32,8 +32,8 @@ public class TextNormalizer {
             // eliminar puntuación
             if (!token.matches("[a-záéíóúñü]+")) continue;
 
-            // eliminar stopwords
-            if (stopWords.contains(token)) continue;
+            // eliminar stopwords (verificar con y sin acentos)
+            if (stopWords.contains(token) || stopWords.contains(stripAccents(token))) continue;
 
             cleanedTokens.add(token);
             cleanedPOS.add(pos);
@@ -44,5 +44,11 @@ public class TextNormalizer {
 
         posTags.clear();
         posTags.addAll(cleanedPOS);
+    }
+
+    private static String stripAccents(String s) {
+        if (s == null) return "";
+        return java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
     }
 }

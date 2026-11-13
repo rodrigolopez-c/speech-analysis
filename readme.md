@@ -1,151 +1,172 @@
-# NLP Pipeline Comparison: CoreNLP vs OpenNLP
+# NLP Pipeline: CoreNLP vs OpenNLP & Módulos Avanzados
 
 ## Overview
 
-This project implements a complete Natural Language Processing (NLP) pipeline in Java to analyze multiple `.txt` documents and compare the performance and effectiveness of two libraries:
+Este proyecto implementa un pipeline completo de Procesamiento de Lenguaje Natural (NLP) híbrido (Java + Python) para analizar documentos textuales (informes institucionales, debates y corpus en español/inglés). 
 
-- Stanford CoreNLP
-- Apache OpenNLP
+El sistema combina análisis lingüístico clásico de alta precisión con modelos neuronales de última generación:
 
-The objective is to evaluate how each library impacts different stages of an NLP pipeline and determine the most suitable option depending on the use case.
-
----
-
-## Objectives
-
-- Compare CoreNLP and OpenNLP in key NLP tasks
-- Measure performance (execution time)
-- Evaluate output quality (tokens, POS tags, vectorization)
-- Analyze how preprocessing affects downstream tasks such as TF-IDF and PCA
+1. **Stanford CoreNLP & Apache OpenNLP**: Preprocesamiento lingüístico (Tokenización, POS Tagging, NER, Lemmatización, BoW, TF-IDF, PCA).
+2. **Análisis de Emociones Concretas (NRC EmoLex & NRC Affect Intensity Lexicon)**: Sustituye la polaridad escalar simple por las 8 emociones básicas de Plutchik ponderadas sintácticamente con Stanford CoreNLP.
+3. **Detección de Sarcasmo**: Arquitecturas Transformers de Hugging Face (BERT, RoBERTa, XLNet), detección de incongruencias semánticas locales (inspirado en DeepMoji) y modelos de línea base con Scikit-Learn (SVM, Regresión Logística).
+4. **Detección de Metáforas**: Red Neuronal Recurrente Bidireccional (BiLSTM) alimentada por embeddings contextuales, enriquecida con índices de concreción/abstracción y conjuntos de sinónimos de WordNet (arquitecturas inspiradas en IlliniMet y MetaNet).
 
 ---
 
-## NLP Pipeline
+## Estructura del Pipeline NLP
 
-The implemented pipeline includes:
-
-Text  
-→ Tokenization  
-→ Sentence Segmentation  
-→ POS Tagging  
-→ Lemmatization (CoreNLP only)  
-→ Text Cleaning (stopwords, normalization)  
-→ Clasification (OpenNLP only)
-→ Bigram Generation  
-→ Bag of Words  
-→ TF-IDF Vectorization  
-→ PCA (Topic Approximation)  
-
----
-
-## Comparison Scope
-
-| Stage | CoreNLP | OpenNLP |
-|------|--------|--------|
-| Tokenization | Advanced | Basic |
-| POS Tagging | More accurate | Model-dependent |
-| Lemmatization | Yes | No |
-| Performance | Slower | Faster |
-| Downstream impact (TF-IDF, PCA) | Higher quality | More noise |
-
----
-
-## Features Implemented
-
-- Multi-document processing
-- POS tagging comparison
-- Stopword removal
-- Text normalization
-- Lemmatization (CoreNLP)
-- Bigram generation
-- Bag of Words (BoW)
-- TF-IDF vectorization
-- PCA for dimensionality reduction
-- Corpus statistics and summaries
-
----
-
-## Project Structure
-
-src/main/java/com/nlp/pipeline/
-
-├── model/
-│ └── DocumentResult.java
-│
-├── nlp/
-│ ├── CoreNLPService.java
-│ ├── OpenNLPService.java
-│ ├── BigramGenerator.java
-│ ├── TextNormalizer.java
-│
-├── pipeline/
-│ ├── CorpusManager.java
-│ ├── CorpusSummary.java
-│ ├── DocumentProcessor.java
-│
-├── vectorization/
-│ ├── BagOfWords.java
-│ ├── TFIDFVectorizer.java
-│ ├── PCAReducer.java
-│ ├── VocabularyBuilder.java
-│
-├── utils/
-│ ├── FileUtils.java
-│ ├── StopWordsLoader.java
-│
-└── App.java
-
----
-
-## Resources
-
-src/main/resources/
-
-├── documents/ # Input .txt files (corpus)
-├── models/ # OpenNLP models (.bin)
-├── stopwords.txt # Stopword list
-
-
----
-
-## Dependencies
-
-- Java 23
-- Maven 3.9+
-- Stanford CoreNLP
-- Apache OpenNLP
-- Apache Commons Math (PCA)
-
----
-
-## Build
-
-```bash
-mvn clean install
+```
+Texto (Corpus CSV / Documentos)
+  │
+  ├──► Preprocesamiento Stanford CoreNLP / OpenNLP
+  │      ├── Tokenización y Sentence Segmentation
+  │      ├── POS Tagging (Etiquetado gramatical)
+  │      └── Lemmatización y Limpieza de Texto
+  │
+  ├──► Análisis de Emociones Concretas (NRC EmoLex + Intensidad) [Java]
+  │      ├── Mapeo de palabras a las 8 emociones de Plutchik
+  │      ├── Ponderación gramatical mediante POS Tags (Adjetivos 1.5x, Verbos 1.2x, Sustantivos 1.0x)
+  │      ├── Integración de Intensidad Afectiva (NRC Affective Intensity Lexicon)
+  │      └── Construcción de Vectores de Características Emocionales
+  │
+  ├──► Vectorización Tradicional & Reducción
+  │      ├── Bag of Words (BoW) & N-gramas
+  │      ├── TF-IDF Vectorization
+  │      └── PCA (Aproximación de tópicos y visualización 2D)
+  │
+  └──► Módulos Avanzados de Aprendizaje Profundo [Python Bridge]
+         ├── Detección de Sarcasmo:
+         │     ├── Transformers Hugging Face (BERT / RoBERTa / XLNet contextual)
+         │     ├── Incongruencias Semánticas y Emocionales (DeepMoji)
+         │     └── Línea Base con Scikit-Learn (SVM y Regresión Logística)
+         └── Detección de Metáforas:
+               ├── BiLSTM sobre Embeddings Contextuales (768-dim)
+               ├── Enriquecimiento Lingüístico: Índices de Concreción / Abstracción
+               ├── Dominios Semánticos y Synsets vía WordNet (NLTK OMW)
+               └── Marcos Conceptuales (MetaNet: Dominio Fuente -> Dominio Destino)
 ```
 
-## Run
+---
 
+## Estructura del Proyecto
+
+```
+nlp-pipeline/
+├── pom.xml
+├── readme.md
+│
+├── src/main/java/com/nlp/pipeline/
+│   ├── model/
+│   │   ├── DocumentResult.java         # Modelo de datos anotado
+│   │   └── EmotionProfile.java         # Perfil de 8 emociones NRC + Intensidad
+│   ├── nlp/
+│   │   ├── CoreNLPService.java         # Servicio Stanford CoreNLP
+│   │   ├── OpenNLPService.java         # Servicio Apache OpenNLP
+│   │   ├── NRCEmotionService.java      # Servicio NRC EmoLex + POS Tags
+│   │   ├── PythonPipelineBridge.java   # Puente de ejecución Java -> Python
+│   │   ├── BigramGenerator.java
+│   │   ├── SentimentService.java
+│   │   └── TextNormalizer.java
+│   ├── pipeline/
+│   │   ├── CorpusManager.java
+│   │   ├── CorpusSummary.java
+│   │   ├── DocumentProcessor.java      # Orquestador de preprocesamiento
+│   │   ├── DocumentExporter.java       # Exportador interoperable (CSV)
+│   │   ├── SentimentSummary.java       # Reporte detallado de emociones NRC
+│   │   └── ClassificationSummary.java
+│   ├── vectorization/
+│   │   ├── BagOfWords.java
+│   │   ├── TFIDFVectorizer.java
+│   │   ├── PCAReducer.java
+│   │   └── VocabularyBuilder.java
+│   └── App.java                        # Punto de entrada Java
+│
+├── src/main/resources/
+│   ├── datasets/                       # Datasets de entrada (.csv, .xlsx)
+│   ├── lexicons/
+│   │   └── nrc_emolex.csv              # Léxico NRC bilingüe (11,800+ palabras)
+│   ├── models/                         # Modelos OpenNLP (.bin)
+│   └── stopwords.txt
+│
+└── src/python/
+    ├── sarcasm/
+    │   ├── baseline_detector.py        # Scikit-Learn SVM & Regresión Logística
+    │   ├── transformer_detector.py     # Hugging Face Transformers (BERT, RoBERTa, XLNet)
+    │   └── semantic_incongruity.py     # Incongruencia semántica y emocional (DeepMoji)
+    ├── metaphor/
+    │   ├── bilstm_model.py             # Red BiLSTM en PyTorch sobre embeddings
+    │   ├── linguistic_features.py      # Concreción, abstracción y WordNet
+    │   └── metaphor_detector.py        # Motor IlliniMet & MetaNet
+    ├── pipeline_runner.py              # CLI para procesamiento de corpus y demos
+    └── requirements.txt
+```
+
+---
+
+## Instalación y Requisitos
+
+### Java
+- Java 21+ o 23
+- Maven 3.9+
+
+Compilar el proyecto:
+```bash
+mvn clean compile
+```
+
+### Python
+- Python 3.10+
+- Dependencias (PyTorch, Transformers, Scikit-Learn, NLTK):
+```bash
+pip install -r src/python/requirements.txt
+```
+
+---
+
+## Ejecución
+
+### 1. Ejecución del Pipeline en Java
+Ejecuta el pipeline completo, procesando el corpus con Stanford CoreNLP, construyendo los vectores de emociones con NRC EmoLex y exportando los resultados:
 ```bash
 mvn exec:java "-Dexec.mainClass=com.nlp.pipeline.App" "-Dexec.jvmArgs=-Xms2g -Xmx6g"
 ```
 
-## Key Findings
+### 2. Ejecución Demostrativa de Sarcasmo y Metáforas (Python)
+Para probar casos paradigmáticos interactivos de sarcasmo y metáforas:
+```bash
+python src/python/pipeline_runner.py --demo
+```
 
-- Stanford CoreNLP produces higher-quality linguistic features
-- Apache OpenNLP is significantly faster but less precise
-- Lemmatization improves TF-IDF and PCA results
-- Bigrams enhance semantic representation
-- The quality of preprocessing directly impacts downstream tasks
+### 3. Ejecución por Lotes sobre un Dataset
+Para procesar un dataset de texto o el corpus exportado por Java:
+```bash
+python src/python/pipeline_runner.py --csv target/processed_informes_iteso_trafilatura.csv --sample 50
+```
 
-## Conclusions
+---
 
-- No single library solves the entire NLP pipeline
-- CoreNLP is better for semantic quality and analysis tasks
-- OpenNLP is better for performance-critical applications
-- Custom preprocessing (cleaning, TF-IDF, PCA) is essential
+## Módulos Detallados
 
-## Limitations
+### 1. Análisis de Emociones Concretas (NRC EmoLex)
+En lugar de una métrica simplista de polaridad (1 a 3), el sistema modela las 8 emociones básicas de Robert Plutchik:
+- **Ira** (*Anger*)
+- **Asco** (*Disgust*)
+- **Miedo** (*Fear*)
+- **Tristeza** (*Sadness*)
+- **Sorpresa** (*Surprise*)
+- **Anticipación** (*Anticipation*)
+- **Alegría** (*Joy*)
+- **Confianza** (*Trust*)
 
-- PCA is used as an approximation for topic modeling
-- Performance depends on hardware resources
+**Integración con StanfordNLP:** Cada palabra es analizada conjuntamente con su etiqueta POS (`CoreAnnotations.PartOfSpeechAnnotation`). Los adjetivos (`JJ`) y adverbios (`RB`) reciben una ponderación superior (1.5x y 1.3x) debido a su función intensificadora del afecto, mientras que los verbos (`VB`) se ponderan a 1.2x y los sustantivos (`NN`) a 1.0x. Adicionalmente, se integra el puntaje continuo de intensidad afectiva del **NRC Affective Intensity Lexicon**.
+
+### 2. Detección de Sarcasmo
+- **Modelos de Lenguaje Contextuales (Hugging Face Transformers)**: Permite utilizar arquitecturas preentrenadas como BERT (`dccuchile/bert-base-spanish-wwm-cased`), RoBERTa (`cardiffnlp/twitter-roberta-base-irony`) y XLNet considerando ventanas de contexto conversacional previo.
+- **Incongruencia Semántica y Emocional (DeepMoji)**: Detecta la presencia de valencia verbal superficial fuertemente positiva en conjunción con situaciones o palabras de afecto negativo intrínseco.
+- **Línea Base (Scikit-Learn)**: Implementa clasificadores lineales SVM (`LinearSVC`) y Regresión Logística (`LogisticRegression`) con unión de características TF-IDF n-gramas a nivel de palabra y carácter, marcadores ortográficos y rasgos de contraste.
+
+### 3. Detección de Metáforas
+- **Red Neuronal BiLSTM**: Red recurrente bidireccional en PyTorch que procesa la secuencia de tokens enriquecida con la concatenación de embeddings contextuales y vectores lingüísticos.
+- **Índices de Concreción y Abstracción**: Basado en normas psicosemánticas y sufijación derivativa para evaluar saltos de concreción (1.0 = abstracto a 5.0 = concreto).
+- **WordNet & Dominios Semánticos (IlliniMet)**: Consulta los synsets y supersenses (`lexnames`) de NLTK WordNet (con soporte en español vía Open Multilingual WordNet) para calcular disparidad de dominios semánticos.
+- **Semántica de Marcos (MetaNet)**: Identifica proyecciones metafóricas conceptuales paradigmáticas entre Dominios Fuente (físicos/biológicos) y Dominios Destino (sociales/institucionales).

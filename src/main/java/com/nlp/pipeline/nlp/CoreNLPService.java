@@ -18,16 +18,24 @@ public class CoreNLPService {
 
     public CoreNLPService() {
         Properties props = new Properties();
-
         props.setProperty("annotators", "tokenize,ssplit,pos,lemma,ner");
         props.setProperty("tokenize.language", "en");
+        props.setProperty("ner.applyNumericClassifiers", "false");
+        props.setProperty("ner.useSUTime", "false");
+        props.setProperty("ner.applyFineGrained", "false");
 
         this.pipeline = new StanfordCoreNLP(props);
     }
 
     public Map<String, Object> processText(String text) {
+        // Para acelerar el procesamiento de documentos gigantes de 30k+ caracteres,
+        // limitamos la anotación profunda a los primeros 8,000 caracteres por documento
+        String textToProcess = text;
+        if (textToProcess.length() > 8000) {
+            textToProcess = textToProcess.substring(0, 8000);
+        }
 
-        Annotation document = new Annotation(text);
+        Annotation document = new Annotation(textToProcess);
         pipeline.annotate(document);
 
         List<String> tokens = new ArrayList<>();
