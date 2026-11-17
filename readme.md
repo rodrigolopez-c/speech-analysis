@@ -89,12 +89,11 @@ speech-analysis/
 │       └── VocabularyBuilder.java
 │
 ├── src/main/resources/                     # Carpeta central de recursos del pipeline
-│   ├── datasets/                           # Datasets ACTIVOS que procesa el script
-│   │   └── diario_debates_senado_trafilatura.csv
-│   ├── unused_datasets/                    # Datasets en reserva (mover a datasets/ para usar)
-│   │   ├── diario_debates.csv              # Congreso de Jalisco
-│   │   ├── informes_iteso.csv              # Informes del Rector ITESO
-│   │   └── presidential_speeches.csv       # Discursos Presidenciales EE. UU.
+│   ├── datasets/                           # Datasets del proyecto (comprimidos en .zip y .csv activos)
+│   │   ├── diario_debates_senado.zip       # Senado de la República (descomprimir a .csv para usar)
+│   │   ├── diario_debates.zip              # Congreso de Jalisco (descomprimir a .csv para usar)
+│   │   ├── informes_iteso.zip              # Informes del Rector ITESO (descomprimir a .csv para usar)
+│   │   └── presidential_speeches.zip       # Discursos Presidenciales EE. UU. (descomprimir a .csv para usar)
 │   ├── lexicons/
 │   │   ├── nrc_emolex.csv                  # Léxico NRC bilingüe activo (12,115 términos)
 │   │   └── nrc_emolex_es.csv               # Léxico NRC base en español
